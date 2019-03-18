@@ -260,8 +260,13 @@ FileStreamRotator.writeAuditLog = function(audit){
 function removeFile(file){
     if(file.hash === crypto.createHash('md5').update(file.name + "LOG_FILE" + file.date).digest("hex")){
         try{
-            if (fs.existsSync(file.name)) {
-                fs.unlinkSync(file.name);
+            // if (fs.existsSync(file.name)) {
+            //     fs.unlinkSync(file.name);
+            // }
+            //patch to delete gz file
+            const gzippedFile = file.name + '.gz';
+            if (fs.existsSync(gzippedFile)) {
+                fs.unlinkSync(gzippedFile);
             }
         }catch(e){
             console.error(new Date(), "[FileStreamRotator] Could not remove old log file: ", file.name);
