@@ -193,6 +193,37 @@ FileStreamRotator.getDate = function (format, date_format, utc) {
 }
 
 /**
+ * Returns date - 2 (minute/hour) string for a given format / date_format
+ * returns date - 2 minutes if the granularity of the format is minutes
+ * return date - 2 hours if the granularity of the format is hours
+ * @param format
+ * @param date_format
+ * @returns {string}
+ */
+FileStreamRotator.getPreviousDate = function (format, date_format) {
+    date_format = date_format || DATE_FORMAT;
+    let split_date_format = date_format.split("-")
+    let date_format_granularity = split_date_format[split_date_format.length - 1][0] //get 'm' or 'H' from the split
+    if (format && staticFrequency.indexOf(format.type) !== -1) {
+        switch (format.type) {
+            case 'm':
+                var minute = Math.floor(moment().minutes() / format.digit) * format.digit;
+                return moment().subtract(2,date_format_granularity).minutes(minute).format(date_format);
+                break;
+            case 'h':
+                var hour = Math.floor(moment().hour() / format.digit) * format.digit;
+                return moment().subtract(2,date_format_granularity).hour(hour).format(date_format);
+                break;
+            case 'daily':
+            case 'custom':
+            case 'test':
+                return moment().subtract(2,date_format_granularity).format(date_format);
+        }
+    }
+    return moment().format(date_format);
+  }
+  
+/**
  * Read audit json object from disk or return new object or null
  * @param max_logs
  * @param audit_file
@@ -601,6 +632,11 @@ FileStreamRotator.getStream = function (options) {
                 if (self.verbose) {
                     console.log(new Date(),require('util').format("[FileStreamRotator] Changing logs from %s to %s", logfile, newLogfile));
                 }
+
+                //if rotating the old file, check for the previous to handle cases where files are not reset during restart
+                var previousDate = this.getPreviousDate(frequencyMetaData,dateFormat);
+                var previousLogfile = filename + (curDate ? "." + previousDate : "");
+
                 curDate = newDate;
                 oldFile = logfile;
                 logfile = newLogfile;
@@ -616,6 +652,7 @@ FileStreamRotator.getStream = function (options) {
                 rotateStream = fs.createWriteStream(newLogfile, file_options);
                 stream.emit('new',newLogfile);
                 stream.emit('rotate',oldFile, newLogfile);
+                stream.emit('rotate',previousLogfile,newLogfile);
                 BubbleEvents(rotateStream,stream);
             }
             rotateStream.write(str, encoding);
