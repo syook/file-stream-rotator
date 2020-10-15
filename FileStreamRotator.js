@@ -308,9 +308,9 @@ FileStreamRotator.writeAuditLog = function(audit, verbose){
 function removeFile(file, verbose){
     if(file.hash === crypto.createHash('md5').update(file.name + "LOG_FILE" + file.date).digest("hex")){
         try{
-            // if (fs.existsSync(file.name)) {
-            //     fs.unlinkSync(file.name);
-            // }
+            if (fs.existsSync(file.name)) {
+                fs.unlinkSync(file.name);
+            }
             //patch to delete gz file
             const gzippedFile = file.name + '.gz';
             if (fs.existsSync(gzippedFile)) {
