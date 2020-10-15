@@ -205,22 +205,22 @@ FileStreamRotator.getPreviousDate = function (format, date_format) {
     let split_date_format = date_format.split("-")
     let date_format_granularity = split_date_format[split_date_format.length - 1][0] //get 'm' or 'H' from the split
     if (format && staticFrequency.indexOf(format.type) !== -1) {
+        var subtractedMoment = moment().subtract(2,date_format_granularity)
         switch (format.type) {
             case 'm':
-                var minute = Math.floor(moment().minutes() / format.digit) * format.digit;
-                return moment().subtract(2,date_format_granularity).minutes(minute).format(date_format);
+                var minute = Math.floor(subtractedMoment.minutes() / format.digit) * format.digit;
+                return subtractedMoment.minutes(minute).format(date_format);
                 break;
             case 'h':
-                var hour = Math.floor(moment().hour() / format.digit) * format.digit;
-                return moment().subtract(2,date_format_granularity).hour(hour).format(date_format);
+                var hour = Math.floor(subtractedMoment.hour() / format.digit) * format.digit;
+                return subtractedMoment.hour(hour).format(date_format);
                 break;
             case 'daily':
             case 'custom':
             case 'test':
-                return moment().subtract(2,date_format_granularity).format(date_format);
+                return subtractedMoment.format(date_format);
         }
     }
-    return moment().format(date_format);
   }
   
 /**
